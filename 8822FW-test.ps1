@@ -1,91 +1,85 @@
-﻿$firewallRules = @(
-    @{ Name="ASDU_Modbus_TCP_502"; Protocol="TCP"; Direction="Outbound"; RemoteAddresses="10.148.196.128,10.148.195.128"; Port=502 },
-    @{ Name="ASDU_Modbus_UDP_502"; Protocol="UDP"; Direction="Outbound"; RemoteAddresses="10.148.196.128,10.148.195.128"; Port=502 },
-    @{ Name="ASDU_BACnet_UDP_47808"; Protocol="UDP"; Direction="Outbound"; RemoteAddresses="10.148.196.128,10.148.195.128"; Port=47808 },
-    @{ Name="ASDU_OPCUA_TCP_62544"; Protocol="TCP"; Direction="Outbound"; RemoteAddresses="10.148.196.129,10.148.196.130"; Port=62544 },
-    @{ Name="ASDU_App_TCP_4572"; Protocol="TCP"; Direction="Outbound"; RemoteAddresses="10.148.196.129,10.148.196.130"; Port=4572 },
-    @{ Name="ASDU_Statistics_TCP_3388"; Protocol="TCP"; Direction="Outbound"; RemoteAddresses="10.148.196.129,10.148.196.130"; Port=3388 },
-    @{ Name="ASDU_TCPServer_TCP_4388"; Protocol="TCP"; Direction="Outbound"; RemoteAddresses="10.148.196.129,10.148.196.130"; Port=4388 },
-    @{ Name="ASDU_Security_TCP_389"; Protocol="TCP"; Direction="Outbound"; RemoteAddresses="10.148.196.129,10.148.196.130"; Port=389 },
-    @{ Name="ASDU_Historian_TCP_4950"; Protocol="TCP"; Direction="Outbound"; RemoteAddresses="10.148.196.129,10.148.196.130"; Port=4950 },
-    @{ Name="ASDU_AgentNet_TCP_1020"; Protocol="TCP"; Direction="Outbound"; RemoteAddresses="10.148.196.129,10.148.196.130"; Port=1020 },
-    @{ Name="ASDU_AgentDomain_TCP_1010"; Protocol="TCP"; Direction="Outbound"; RemoteAddresses="10.148.196.129,10.148.196.130"; Port=1010 },
-    @{ Name="ASDU_KNX_UDP_3671"; Protocol="UDP"; Direction="Outbound"; RemoteAddresses="10.148.196.128,10.148.195.128"; Port=3671 },
-    @{ Name="ASDU_KNX_UDP_3671_IN"; Protocol="UDP"; Direction="Inbound"; RemoteAddresses="10.148.196.129,10.148.196.130"; Port=3671 },
-    @{ Name="ASDU_SNMP_UDP_161"; Protocol="UDP"; Direction="Outbound"; RemoteAddresses="10.148.196.128,10.148.195.128"; Port=161 },
-    @{ Name="ASDU_SNMP_UDP_162"; Protocol="UDP"; Direction="Inbound"; RemoteAddresses="10.148.196.128,10.148.195.128"; Port=162 },
-    @{ Name="ASDU_Postgres_TCP_5432"; Protocol="TCP"; Direction="Inbound"; RemoteAddresses="10.148.196.129,10.148.196.130"; Port=5432 },
-    @{ Name="ASDU_AccessPoint_TCP_4976"; Protocol="TCP"; Direction="Inbound"; RemoteAddresses="10.148.196.129,10.148.196.130"; Port=4976 },
-    @{ Name="ASDU_AccessPoint_TCP_4949"; Protocol="TCP"; Direction="Inbound"; RemoteAddresses="10.148.196.129,10.148.196.130"; Port=4949 },
-    @{ Name="ASDU_License_TCP_15150"; Protocol="TCP"; Direction="Inbound"; RemoteAddresses="10.148.196.129,10.148.196.130"; Port=15150 },
-    @{ Name="ASDU_Statistics_TCP_15151"; Protocol="TCP"; Direction="Inbound"; RemoteAddresses="10.148.196.129,10.148.196.130"; Port=15151 }
-)
+# Список правил (как в твоём скрипте New-NetFirewallRule)
+$rules = @'
+New-NetFirewallRule -DisplayName "ASDU_Modbus_TCP_502" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.128/25,10.148.195.128/25 -RemotePort 502 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_Modbus_UDP_502" -Direction Outbound -Protocol UDP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.128/25,10.148.195.128/25 -RemotePort 502 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_BACnet_UDP_47808" -Direction Outbound -Protocol UDP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.128/25,10.148.195.128/25 -RemotePort 47808 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_OPCUA_TCP_62544" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 62544 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_App_TCP_4572" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 4572 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_Statistics_TCP_3388" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 3388 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_TCPServer_TCP_4388" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 4388 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_Security_TCP_389" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 389 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_Historian_TCP_4950" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 4950 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_AgentNet_TCP_1020" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 1020 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_AgentDomain_TCP_1010" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 1010 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_KNX_UDP_3671" -Direction Outbound -Protocol UDP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.128/25,10.148.195.128/25 -RemotePort 3671 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_KNX_UDP_3671_IN" -Direction Inbound -Protocol UDP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 3671 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_SNMP_UDP_161" -Direction Outbound -Protocol UDP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.128/25,10.148.195.128/25 -RemotePort 161 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_SNMP_UDP_162" -Direction Inbound -Protocol UDP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.128/25,10.148.195.128/25 -LocalPort 162 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_Postgres_TCP_5432" -Direction Inbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -LocalPort 5432 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_AccessPoint_TCP_4976" -Direction Inbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -LocalPort 4976 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_AccessPoint_TCP_4949" -Direction Inbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -LocalPort 4949 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_License_TCP_15150" -Direction Inbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -LocalPort 15150 -Action Allow
+New-NetFirewallRule -DisplayName "ASDU_Statistics_TCP_15151" -Direction Inbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -LocalPort 15151 -Action Allow
+'@ -split "`n"
 
-function Test-TcpPort {
-    param($host, $port)
-    $tcp = New-Object System.Net.Sockets.TcpClient
+# Функция пинга
+function Test-Ping {
+    param($IP)
     try {
-        $tcp.Connect($host, $port)
-        return $true
-    } catch {
-        return $false
-    } finally {
-        $tcp.Close()
-    }
-}
-
-function Test-UdpPort {
-    param($host, $port, $timeout=2000)
-    $udp = New-Object System.Net.Sockets.UdpClient
-    try {
-        $udp.Client.ReceiveTimeout = $timeout
-        $udp.Connect($host, $port)
-        $udp.Send([byte[]]@(), 0)
-        return $true
-    } catch {
-        return $false
-    } finally {
-        $udp.Close()
-    }
-}
-
-# Массив для итоговых результатов
-$results = @()
-
-foreach ($rule in $firewallRules) {
-    Write-Host "====================="
-    Write-Host "Правило: $($rule.Name)"
-    Write-Host "Протокол: $($rule.Protocol)"
-    Write-Host "Направление: $($rule.Direction)"
-    Write-Host "Порт: $($rule.Port)"
-    $addresses = $rule.RemoteAddresses -split ","
-    foreach ($addr in $addresses) {
-        Write-Host "Проверка адреса: $addr ..."
-        $startTime = Get-Date
-        $status = if ($rule.Protocol -eq "TCP") {
-            Test-TcpPort -host $addr -port $rule.Port
+        if (Test-Connection -ComputerName $IP -Count 1 -Quiet -ErrorAction SilentlyContinue) {
+            return "Ping OK"
         } else {
-            Test-UdpPort -host $addr -port $rule.Port
+            return "Ping Fail"
         }
-        $endTime = Get-Date
-        $resultText = if ($status) { "ОТКРЫТ" } else { "ЗАКРЫТ" }
-        Write-Host ("Результат: {0}, Время проверки: {1:N2} сек" -f $resultText, ($endTime - $startTime).TotalSeconds)
-
-        # Сохраняем результат в массив
-        $results += [PSCustomObject]@{
-            Правило     = $rule.Name
-            Протокол    = $rule.Protocol
-            Направление = $rule.Direction
-            Адрес       = $addr
-            Порт        = $rule.Port
-            Статус      = $resultText
-        }
-    }
-    Write-Host "=====================`n"
+    } catch { return "Ping Error" }
 }
 
-# Итоговая таблица
-Write-Host "Итоговая проверка портов:"
-$results | Format-Table -AutoSize
+# Основной цикл
+$results = @()
+foreach ($rule in $rules) {
+    if ($rule.Trim() -eq "") { continue }
 
-Write-Host "Все проверки завершены."
+    # Парсим DisplayName, Protocol, Port, RemoteAddress
+    $displayName = [regex]::Match($rule, '-DisplayName\s+"([^"]+)"').Groups[1].Value
+    $protocol    = [regex]::Match($rule, '-Protocol\s+(\w+)').Groups[1].Value
+    $remote      = [regex]::Match($rule, '-RemoteAddress\s+([^\s]+)').Groups[1].Value
+    $localPort   = [regex]::Match($rule, '-LocalPort\s+(\d+)').Groups[1].Value
+    $remotePort  = [regex]::Match($rule, '-RemotePort\s+(\d+)').Groups[1].Value
+    $port        = if ($remotePort) { $remotePort } else { $localPort }
+
+    foreach ($ip in $remote.Split(",")) {
+        $ip = $ip.Trim()
+
+        Write-Host "=== Проверка правила $displayName ($protocol $ip:$port) ===" -ForegroundColor Cyan
+
+        $pingResult = Test-Ping $ip
+
+        if ($protocol -eq "TCP") {
+            $test = Test-NetConnection -ComputerName $ip -Port $port -WarningAction SilentlyContinue
+            $status = if ($test.TcpTestSucceeded) { "OPEN" } else { "CLOSED" }
+        }
+        elseif ($protocol -eq "UDP") {
+            $test = Test-NetConnection -ComputerName $ip -UdpPort $port -WarningAction SilentlyContinue
+            $status = if ($test.UdpTestSucceeded) { "OPEN/RESPONDS" } else { "NO RESPONSE" }
+        }
+        else {
+            $status = "UNKNOWN PROTO"
+        }
+
+        Write-Host "  Ping: $pingResult"
+        Write-Host "  Port status: $status"
+        Write-Host ""
+
+        $results += [pscustomobject]@{
+            Rule        = $displayName
+            Protocol    = $protocol
+            RemoteIP    = $ip
+            Port        = $port
+            Ping        = $pingResult
+            PortStatus  = $status
+        }
+    }
+}
+
+Write-Host "`n=== Итоговая таблица ===" -ForegroundColor Yellow
+$results | Format-Table -AutoSize
