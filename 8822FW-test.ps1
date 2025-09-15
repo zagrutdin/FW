@@ -1,85 +1,243 @@
-# Список правил (как в твоём скрипте New-NetFirewallRule)
-$rules = @'
-New-NetFirewallRule -DisplayName "ASDU_Modbus_TCP_502" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.128/25,10.148.195.128/25 -RemotePort 502 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_Modbus_UDP_502" -Direction Outbound -Protocol UDP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.128/25,10.148.195.128/25 -RemotePort 502 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_BACnet_UDP_47808" -Direction Outbound -Protocol UDP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.128/25,10.148.195.128/25 -RemotePort 47808 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_OPCUA_TCP_62544" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 62544 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_App_TCP_4572" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 4572 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_Statistics_TCP_3388" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 3388 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_TCPServer_TCP_4388" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 4388 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_Security_TCP_389" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 389 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_Historian_TCP_4950" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 4950 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_AgentNet_TCP_1020" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 1020 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_AgentDomain_TCP_1010" -Direction Outbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 1010 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_KNX_UDP_3671" -Direction Outbound -Protocol UDP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.128/25,10.148.195.128/25 -RemotePort 3671 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_KNX_UDP_3671_IN" -Direction Inbound -Protocol UDP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -RemotePort 3671 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_SNMP_UDP_161" -Direction Outbound -Protocol UDP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.128/25,10.148.195.128/25 -RemotePort 161 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_SNMP_UDP_162" -Direction Inbound -Protocol UDP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.128/25,10.148.195.128/25 -LocalPort 162 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_Postgres_TCP_5432" -Direction Inbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -LocalPort 5432 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_AccessPoint_TCP_4976" -Direction Inbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -LocalPort 4976 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_AccessPoint_TCP_4949" -Direction Inbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -LocalPort 4949 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_License_TCP_15150" -Direction Inbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -LocalPort 15150 -Action Allow
-New-NetFirewallRule -DisplayName "ASDU_Statistics_TCP_15151" -Direction Inbound -Protocol TCP -LocalAddress 10.148.207.1 -RemoteAddress 10.148.196.129,10.148.196.130 -LocalPort 15151 -Action Allow
-'@ -split "`n"
+# Требуется: RSAT (модуль ActiveDirectory)
+Import-Module ActiveDirectory -ErrorAction Stop
 
-# Функция пинга
-function Test-Ping {
-    param($IP)
+# --- Настройки ---
+$ADServer = 'sibur.local'   # можно указать контроллер
+$ReportDir = "C:\Scripts"
+if (-not (Test-Path $ReportDir)) { New-Item -Path $ReportDir -ItemType Directory -Force | Out-Null }
+
+# --- Список учётных записей ---
+$DeviceList = @(
+"a722fry-Device0164",
+"a722fry-Device0166",
+"a722fry-Device0173",
+"a722fry-Device0175",
+"a722fry-Device0176",
+"a722fry-Device0202",
+"a722fry-Device0220",
+"a722fry-Device0224",
+"a722fry-Device0235",
+"a722fry-Device0244",
+"a722fry-Device0258",
+"a722fry-Device0268",
+"a722fry-Device0272",
+"a722fry-Device0302",
+"a722fry-Device0303",
+"a722fry-Device0305",
+"a722fry-Device0307",
+"a722fry-Device0313",
+"a722fry-Device0320",
+"a722fry-Device0329",
+"a722fry-Device0337",
+"a722fry-Device0348",
+"a722fry-Device0362",
+"a722fry-Device0366",
+"a722fry-Device0371",
+"a722fry-Device0373",
+"a722fry-Device0407",
+"a722fry-Device0411",
+"a722fry-Device0414",
+"a722fry-Device0417",
+"a722fry-Device0423",
+"a722fry-Device0424",
+"a722fry-Device0426",
+"a722fry-Device0429",
+"a722fry-Device0431",
+"a722fry-Device0437",
+"a722fry-Device0439",
+"a722fry-Device0441",
+"a722fry-Device0444",
+"a722fry-Device0446",
+"a722fry-Device0447",
+"a722fry-Device0448",
+"a722fry-Device0458",
+"a722fry-Device0459",
+"a722fry-Device0460",
+"a722fry-Device0461",
+"a722fry-Device0462",
+"a722fry-Device0463",
+"a722fry-Device0464",
+"a722fry-Device0465",
+"a722fry-Device0466",
+"a722fry-Device0468",
+"a722fry-Device0469",
+"a722fry-Device0472",
+"a722fry-Device0477",
+"a722fry-Device0480",
+"a722fry-Device0483",
+"a722fry-Device0484",
+"a722fry-Device0485",
+"a722fry-Device0486",
+"a722fry-Device0487",
+"a722fry-Device0488",
+"a722fry-Device0489",
+"a722fry-Device0490",
+"a722fry-Device0491",
+"a722fry-Device0492",
+"a722fry-Device0493",
+"a722fry-Device0512",
+"a722fry-Device0519",
+"a722fry-Device0524",
+"a722fry-Device0576",
+"a722fry-Device0577",
+"a722fry-Device0578",
+"a722fry-Device0579",
+"a722fry-Device0580",
+"a722fry-Device0581",
+"a722fry-Device0582",
+"a722fry-Device0583",
+"a722fry-Device0584",
+"a722fry-Device0585",
+"a722fry-Device0586",
+"a722fry-Device0587",
+"a722fry-Device0588",
+"a722fry-Device0589",
+"a722fry-Device0590",
+"a722fry-Device0591",
+"a722fry-Device0609",
+"a722fry-Device0674",
+"a722fry-Device0756",
+"a722fry-Device0772",
+"a722fry-Device0858",
+"a722fry-Device0874",
+"a722fry-Device0909",
+"a722fry-Device1025",
+"a722fry-Device1039",
+"a722fry-Device1099",
+"a722fry-Device1125",
+"a722fry-Device1172",
+"a722fry-Device1173",
+"a722fry-Device1174",
+"a722fry-Device1175",
+"a722fry-Device1180",
+"a722fry-Device1181",
+"a722fry-Device1182",
+"a722fry-Device1183",
+"a722fry-Device1184",
+"a722fry-Device1185",
+"a722fry-Device1186",
+"a722fry-Device1187",
+"a722fry-Device1188",
+"a722fry-Device1189",
+"a722fry-Device1190",
+"a722fry-Device1191",
+"a722fry-Device1192",
+"a722fry-Device1193",
+"a722fry-Device1194",
+"a722fry-Device1195",
+"a722fry-Device1196",
+"a722fry-Device1197",
+"a722fry-Device1198",
+"a722fry-Device1199",
+"a722fry-Device1200",
+"a722fry-Device1201",
+"a722fry-Device1202",
+"a722fry-Device1203",
+"a722fry-Device1204",
+"a722fry-Device1205",
+"a722fry-Device1206",
+"a722fry-Device1207",
+"a722fry-Device1208",
+"a722fry-Device1209",
+"a722fry-Device1210",
+"a722fry-Device1211",
+"a722fry-Device1212",
+"a722fry-Device1213",
+"a722fry-Device1214",
+"a722fry-Device1215",
+"a722fry-Device1216",
+"a722fry-Device1217",
+"a722fry-Device1218",
+"a722fry-Device1219",
+"a722fry-Device1220",
+"a722fry-Device1221",
+"a722fry-Device1222",
+"a722fry-Device1223",
+"a722fry-Device1224",
+"a722fry-Device1225",
+"a722fry-Device1226",
+"a722fry-Device1227",
+"a722fry-Device1228",
+"a722fry-Device1229",
+"a722fry-Device1287",
+"a722fry-Device1288",
+"a722fry-Device1289",
+"a722fry-Device1290",
+"a722fry-Device1291",
+"a722fry-Device1292",
+"a722fry-Device1293",
+"a722fry-Device1294",
+"a722fry-Device1295",
+"a722fry-Device1296",
+"a722fry-Device1297",
+"a722fry-Device1298",
+"a722fry-Device1299",
+"a722fry-Device1300",
+"a722fry-Device1301",
+"a722fry-Device1302",
+"a722fry-Device1303",
+"a722fry-Device1371",
+"a722fry-Device1372",
+"a722fry-Device1373",
+"a722fry-Device1374",
+"a722fry-Device1375"
+)
+
+# --- Основной блок ---
+$Results = [System.Collections.Generic.List[object]]::new()
+$total = $DeviceList.Count
+$idx = 0
+
+foreach ($Name in $DeviceList) {
+    $idx++
+    Write-Host "[$idx/$total] Проверка: $Name" -NoNewline
+
     try {
-        if (Test-Connection -ComputerName $IP -Count 1 -Quiet -ErrorAction SilentlyContinue) {
-            return "Ping OK"
-        } else {
-            return "Ping Fail"
-        }
-    } catch { return "Ping Error" }
-}
+        $baseParams = @{ ErrorAction = 'SilentlyContinue' }
+        if ($ADServer) { $baseParams.Server = $ADServer }
 
-# Основной цикл
-$results = @()
-foreach ($rule in $rules) {
-    if ($rule.Trim() -eq "") { continue }
-
-    # Парсим DisplayName, Protocol, Port, RemoteAddress
-    $displayName = [regex]::Match($rule, '-DisplayName\s+"([^"]+)"').Groups[1].Value
-    $protocol    = [regex]::Match($rule, '-Protocol\s+(\w+)').Groups[1].Value
-    $remote      = [regex]::Match($rule, '-RemoteAddress\s+([^\s]+)').Groups[1].Value
-    $localPort   = [regex]::Match($rule, '-LocalPort\s+(\d+)').Groups[1].Value
-    $remotePort  = [regex]::Match($rule, '-RemotePort\s+(\d+)').Groups[1].Value
-    $port        = if ($remotePort) { $remotePort } else { $localPort }
-
-    foreach ($ip in $remote.Split(",")) {
-        $ip = $ip.Trim()
-
-        Write-Host "=== Проверка правила $displayName ($protocol $ip:$port) ===" -ForegroundColor Cyan
-
-        $pingResult = Test-Ping $ip
-
-        if ($protocol -eq "TCP") {
-            $test = Test-NetConnection -ComputerName $ip -Port $port -WarningAction SilentlyContinue
-            $status = if ($test.TcpTestSucceeded) { "OPEN" } else { "CLOSED" }
-        }
-        elseif ($protocol -eq "UDP") {
-            $test = Test-NetConnection -ComputerName $ip -UdpPort $port -WarningAction SilentlyContinue
-            $status = if ($test.UdpTestSucceeded) { "OPEN/RESPONDS" } else { "NO RESPONSE" }
-        }
-        else {
-            $status = "UNKNOWN PROTO"
+        # --- Computer ---
+        $comp = Get-ADComputer -Filter "Name -eq '$Name'" -Properties SamAccountName,DistinguishedName,Enabled,LockedOut,whenCreated,whenChanged,lastLogonTimestamp,OperatingSystem,OperatingSystemVersion,Description @baseParams
+        if ($comp) {
+            $lastLogon = if ($comp.lastLogonTimestamp) { [DateTime]::FromFileTime([int64]$comp.lastLogonTimestamp) } else { $null }
+            $Results.Add([PSCustomObject]@{
+                Account          = $Name
+                ObjectType       = 'Computer'
+                Found            = 'Yes'
+                DistinguishedName= $comp.DistinguishedName
+                SamAccountName   = $comp.SamAccountName
+                Enabled          = $comp.Enabled
+                LockedOut        = $comp.LockedOut
+                WhenCreated      = $comp.whenCreated
+                WhenChanged      = $comp.whenChanged
+                LastLogon        = $lastLogon
+                OperatingSystem  = $comp.OperatingSystem
+                OSVersion        = $comp.OperatingSystemVersion
+                Description      = $comp.Description
+                Error            = ''
+            })
+            Write-Host " -> найден (Computer)" -ForegroundColor Green
+            continue
         }
 
-        Write-Host "  Ping: $pingResult"
-        Write-Host "  Port status: $status"
-        Write-Host ""
-
-        $results += [pscustomobject]@{
-            Rule        = $displayName
-            Protocol    = $protocol
-            RemoteIP    = $ip
-            Port        = $port
-            Ping        = $pingResult
-            PortStatus  = $status
-        }
-    }
-}
-
-Write-Host "`n=== Итоговая таблица ===" -ForegroundColor Yellow
-$results | Format-Table -AutoSize
+        # --- User ---
+        $user = Get-ADUser -Filter "SamAccountName -eq '$Name' -or Name -eq '$Name'" -Properties SamAccountName,DistinguishedName,Enabled,LockedOut,whenCreated,whenChanged,lastLogonTimestamp,Description @baseParams
+        if ($user) {
+            $lastLogon = if ($user.lastLogonTimestamp) { [DateTime]::FromFileTime([int64]$user.lastLogonTimestamp) } else { $null }
+            $Results.Add([PSCustomObject]@{
+                Account          = $Name
+                ObjectType       = 'User'
+                Found            = 'Yes'
+                DistinguishedName= $user.DistinguishedName
+                SamAccountName   = $user.SamAccountName
+                Enabled          = $user.Enabled
+                LockedOut        = $user.LockedOut
+                WhenCreated      = $user.whenCreated
+                WhenChanged      = $user.whenChanged
+                LastLogon        = $lastLogon
+                OperatingSystem  = ''
+                OSVersion        = ''
+                Description      = $user.Description
+                Error            = ''
+            })
+            Write-Host " -> найден (User)"
