@@ -1,10 +1,5 @@
-# Требуется: RSAT (модуль ActiveDirectory)
+# --- Модуль ActiveDirectory ---
 Import-Module ActiveDirectory -ErrorAction Stop
-
-# --- Настройки ---
-$ADServer = 'sibur.local'   # можно указать контроллер
-$ReportDir = "C:\Scripts\02AD\Reports"
-if (-not (Test-Path $ReportDir)) { New-Item -Path $ReportDir -ItemType Directory -Force | Out-Null }
 
 # --- Список учётных записей ---
 $DeviceList = @(
@@ -183,111 +178,27 @@ $DeviceList = @(
 "a722fry-Device1375"
 )
 
-# --- Основной блок ---
-$Results = @()
-$total = $DeviceList.Count
+# --- Проверка и блокировка ---
 $idx = 0
+$total = $DeviceList.Count
 
 foreach ($Name in $DeviceList) {
     $idx++
-    Write-Host "[$idx/$total] Проверка: $Name" -NoNewline
+    Write-Host "[$idx/$total] Обработка: $Name" -NoNewline
 
     try {
-        $baseParams = @{ ErrorAction = 'SilentlyContinue' }
-        if ($ADServer) { $baseParams.Server = $ADServer }
-
-        # --- Computer ---
-        $comp = Get-ADComputer -Filter "Name -eq '$Name'" -Properties SamAccountName,DistinguishedName,Enabled,LockedOut,whenCreated,whenChanged,lastLogonTimestamp,OperatingSystem,OperatingSystemVersion,Description @baseParams
-        if ($comp) {
-            $lastLogon = if ($comp.lastLogonTimestamp) { [DateTime]::FromFileTime([int64]$comp.lastLogonTimestamp) } else { $null }
-            $Results += [PSCustomObject]@{
-                Account          = $Name
-                ObjectType       = 'Computer'
-                Found            = 'Yes'
-                DistinguishedName= $comp.DistinguishedName
-                SamAccountName   = $comp.SamAccountName
-                Enabled          = $comp.Enabled
-                LockedOut        = $comp.LockedOut
-                WhenCreated      = $comp.whenCreated
-                WhenChanged      = $comp.whenChanged
-                LastLogon        = $lastLogon
-                OperatingSystem  = $comp.OperatingSystem
-                OSVersion        = $comp.OperatingSystemVersion
-                Description      = $comp.Description
-                Error            = ''
-            }
-            Write-Host " -> найден (Computer)" -ForegroundColor Green
-            continue
-        }
-
-        # --- User ---
-        $user = Get-ADUser -Filter "SamAccountName -eq '$Name' -or Name -eq '$Name'" -Properties SamAccountName,DistinguishedName,Enabled,LockedOut,whenCreated,whenChanged,lastLogonTimestamp,Description @baseParams
+        # --- Найти пользователя ---
+        $user = Get-ADUser -Filter "SamAccountName -eq '$Name'" -Properties Enabled, LockedOut
         if ($user) {
-            $lastLogon = if ($user.lastLogonTimestamp) { [DateTime]::FromFileTime([int64]$user.lastLogonTimestamp) } else { $null }
-            $Results += [PSCustomObject]@{
-                Account          = $Name
-                ObjectType       = 'User'
-                Found            = 'Yes'
-                DistinguishedName= $user.DistinguishedName
-                SamAccountName   = $user.SamAccountName
-                Enabled          = $user.Enabled
-                LockedOut        = $user.LockedOut
-                WhenCreated      = $user.whenCreated
-                WhenChanged      = $user.whenChanged
-                LastLogon        = $lastLogon
-                OperatingSystem  = ''
-                OSVersion        = ''
-                Description      = $user.Description
-                Error            = ''
-            }
-            Write-Host " -> найден (User)" -ForegroundColor Cyan
-            continue
+            # --- Блокировать ---
+            Disable-ADAccount -Identity $user
+            Write-Host " -> найден и заблокирован | Enabled: $($user.Enabled) | LockedOut: $($user.LockedOut)" -ForegroundColor Green
         }
-
-        # --- Если не найден ---
-        $Results += [PSCustomObject]@{
-            Account          = $Name
-            ObjectType       = 'Unknown'
-            Found            = 'No'
-            DistinguishedName= ''
-            SamAccountName   = ''
-            Enabled          = ''
-            LockedOut        = ''
-            WhenCreated      = ''
-            WhenChanged      = ''
-            LastLogon        = ''
-            OperatingSystem  = ''
-            OSVersion        = ''
-            Description      = ''
-            Error            = 'Не найден'
+        else {
+            Write-Host " -> не найден" -ForegroundColor Red
         }
-        Write-Host " -> не найден" -ForegroundColor Red
     }
     catch {
-        $Results += [PSCustomObject]@{
-            Account          = $Name
-            ObjectType       = 'Error'
-            Found            = 'No'
-            DistinguishedName= ''
-            SamAccountName   = ''
-            Enabled          = ''
-            LockedOut        = ''
-            WhenCreated      = ''
-            WhenChanged      = ''
-            LastLogon        = ''
-            OperatingSystem  = ''
-            OSVersion        = ''
-            Description      = ''
-            Error            = $_.Exception.Message
-        }
         Write-Host " -> ошибка: $($_.Exception.Message)" -ForegroundColor Yellow
     }
 }
-
-# --- Вывод на экран ---
-$Results | Format-Table -AutoSize
-
-# --- Сохранение в CSV ---
-$CSVFile = Join-Path $ReportDir "AD_Check_Report_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv"
-$Results | Export-Csv -Path $CSVFile -NoTypeInformation -Encoding UTF8
-Write-Host "`nОтчёт сохранён: $CSVFile" -ForegroundColor Green
