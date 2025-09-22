@@ -64,7 +64,7 @@ catch {
 
 # Формируем описание
 $description = "$($adUser.Surname) $($adUser.GivenName) $($adUser.MiddleName) <$($adUser.mail)>, $id"
-Write-Host -ForegroundColor Cyan "[INFO] Сформировано описание: $descriptionn"
+Write-Host -ForegroundColor Cyan "[INFO] Сформировано описание: $description`n"
 
 # Перебор объектов и обновление их описания
 foreach ($objectName in $groups) {
@@ -74,7 +74,7 @@ foreach ($objectName in $groups) {
     $object = Get-ADObject -Filter "Name -eq '$objectName' -or DisplayName -eq '$objectName'" -Properties Description, ObjectClass -ErrorAction SilentlyContinue
 
     if ($object) {
-        Write-Host -NoNewline -ForegroundColor Gray "$objectNamet"
+        Write-Host -NoNewline -ForegroundColor Gray "$objectName "
 
         if (($object | Measure-Object).Count -eq 1) {
             # Проверка типа объекта
@@ -87,22 +87,22 @@ foreach ($objectName in $groups) {
 
                     # Обновляем описание объекта
                     Set-ADObject -Identity $object.ObjectGUID -Description $newDescription
-                    Write-Host -ForegroundColor Yellow "[УСПЕХ] Описание обновлено для '$objectName 'n"
+                    Write-Host -ForegroundColor Yellow "[УСПЕХ] Описание обновлено для '$objectName'`n"
                 }
                 else {
-                    Write-Host -ForegroundColor Magenta "Описание уже соответствует нужному" 
+                    Write-Host -ForegroundColor Magenta "Описание уже соответствует нужному`n" 
                 }
             }
             else {
-                Write-Host -ForegroundColor DarkYellow "Объект '$objectName' не является группой или пользователем (тип: $($object.ObjectClass))"
+                Write-Host -ForegroundColor DarkYellow "Объект '$objectName' не является группой или пользователем (тип: $($object.ObjectClass))`n"
             }
         }
         else {
-            Write-Host -ForegroundColor Red "Найдено несколько объектов для '$objectName'. Требуется уточнение."
+            Write-Host -ForegroundColor Red "Найдено несколько объектов для '$objectName'. Требуется уточнение.`n"
             pause
         }
     }
     else {
-        Write-Host -NoNewline -ForegroundColor Red "$objectName  не найдено`n"
+        Write-Host -ForegroundColor Red "$objectName не найдено`n"
     }
 }
