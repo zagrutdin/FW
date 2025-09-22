@@ -1,222 +1,108 @@
-# --- Модуль ActiveDirectory ---
-Import-Module ActiveDirectory -ErrorAction Stop
+# Автор: Флорит Загрутдинов
+# Телефон: +7 917 272-22-88
 
-# --- Список учётных записей ---
-$DeviceList = @(
-"a722fry-Device0001",
-"a722fry-Device0004",
-"a722fry-Device0006",
-"a722fry-Device0011",
-"a722fry-Device0018",
-"a722fry-Device0020",
-"a722fry-Device0036",
-"a722fry-Device0061",
-"a722fry-Device0096",
-"a722fry-Device0118",
-"a722fry-Device0133",
-"a722fry-Device0136",
-"a722fry-Device0143",
-"a722fry-Device0147",
-"a722fry-Device0150",
-"a722fry-Device0157",
-"a722fry-Device0159",
-"a722fry-Device0163",
-"a722fry-Device0164",
-"a722fry-Device0166",
-"a722fry-Device0173",
-"a722fry-Device0175",
-"a722fry-Device0176",
-"a722fry-Device0202",
-"a722fry-Device0220",
-"a722fry-Device0224",
-"a722fry-Device0235",
-"a722fry-Device0244",
-"a722fry-Device0258",
-"a722fry-Device0268",
-"a722fry-Device0272",
-"a722fry-Device0302",
-"a722fry-Device0303",
-"a722fry-Device0305",
-"a722fry-Device0307",
-"a722fry-Device0313",
-"a722fry-Device0320",
-"a722fry-Device0329",
-"a722fry-Device0337",
-"a722fry-Device0348",
-"a722fry-Device0362",
-"a722fry-Device0366",
-"a722fry-Device0371",
-"a722fry-Device0373",
-"a722fry-Device0407",
-"a722fry-Device0411",
-"a722fry-Device0414",
-"a722fry-Device0417",
-"a722fry-Device0423",
-"a722fry-Device0424",
-"a722fry-Device0426",
-"a722fry-Device0429",
-"a722fry-Device0431",
-"a722fry-Device0437",
-"a722fry-Device0439",
-"a722fry-Device0441",
-"a722fry-Device0444",
-"a722fry-Device0446",
-"a722fry-Device0447",
-"a722fry-Device0448",
-"a722fry-Device0458",
-"a722fry-Device0459",
-"a722fry-Device0460",
-"a722fry-Device0461",
-"a722fry-Device0462",
-"a722fry-Device0463",
-"a722fry-Device0464",
-"a722fry-Device0465",
-"a722fry-Device0466",
-"a722fry-Device0468",
-"a722fry-Device0469",
-"a722fry-Device0472",
-"a722fry-Device0477",
-"a722fry-Device0480",
-"a722fry-Device0483",
-"a722fry-Device0484",
-"a722fry-Device0485",
-"a722fry-Device0486",
-"a722fry-Device0487",
-"a722fry-Device0488",
-"a722fry-Device0489",
-"a722fry-Device0490",
-"a722fry-Device0491",
-"a722fry-Device0492",
-"a722fry-Device0493",
-"a722fry-Device0512",
-"a722fry-Device0519",
-"a722fry-Device0524",
-"a722fry-Device0576",
-"a722fry-Device0577",
-"a722fry-Device0578",
-"a722fry-Device0579",
-"a722fry-Device0580",
-"a722fry-Device0581",
-"a722fry-Device0582",
-"a722fry-Device0583",
-"a722fry-Device0584",
-"a722fry-Device0585",
-"a722fry-Device0586",
-"a722fry-Device0587",
-"a722fry-Device0588",
-"a722fry-Device0589",
-"a722fry-Device0590",
-"a722fry-Device0591",
-"a722fry-Device0609",
-"a722fry-Device0674",
-"a722fry-Device0756",
-"a722fry-Device0772",
-"a722fry-Device0858",
-"a722fry-Device0874",
-"a722fry-Device0909",
-"a722fry-Device1025",
-"a722fry-Device1039",
-"a722fry-Device1099",
-"a722fry-Device1125",
-"a722fry-Device1172",
-"a722fry-Device1173",
-"a722fry-Device1174",
-"a722fry-Device1175",
-"a722fry-Device1180",
-"a722fry-Device1181",
-"a722fry-Device1182",
-"a722fry-Device1183",
-"a722fry-Device1184",
-"a722fry-Device1185",
-"a722fry-Device1186",
-"a722fry-Device1187",
-"a722fry-Device1188",
-"a722fry-Device1189",
-"a722fry-Device1190",
-"a722fry-Device1191",
-"a722fry-Device1192",
-"a722fry-Device1193",
-"a722fry-Device1194",
-"a722fry-Device1195",
-"a722fry-Device1196",
-"a722fry-Device1197",
-"a722fry-Device1198",
-"a722fry-Device1199",
-"a722fry-Device1200",
-"a722fry-Device1201",
-"a722fry-Device1202",
-"a722fry-Device1203",
-"a722fry-Device1204",
-"a722fry-Device1205",
-"a722fry-Device1206",
-"a722fry-Device1207",
-"a722fry-Device1208",
-"a722fry-Device1209",
-"a722fry-Device1210",
-"a722fry-Device1211",
-"a722fry-Device1212",
-"a722fry-Device1213",
-"a722fry-Device1214",
-"a722fry-Device1215",
-"a722fry-Device1216",
-"a722fry-Device1217",
-"a722fry-Device1218",
-"a722fry-Device1219",
-"a722fry-Device1220",
-"a722fry-Device1221",
-"a722fry-Device1222",
-"a722fry-Device1223",
-"a722fry-Device1224",
-"a722fry-Device1225",
-"a722fry-Device1226",
-"a722fry-Device1227",
-"a722fry-Device1228",
-"a722fry-Device1229",
-"a722fry-Device1287",
-"a722fry-Device1288",
-"a722fry-Device1289",
-"a722fry-Device1290",
-"a722fry-Device1291",
-"a722fry-Device1292",
-"a722fry-Device1293",
-"a722fry-Device1294",
-"a722fry-Device1295",
-"a722fry-Device1296",
-"a722fry-Device1297",
-"a722fry-Device1298",
-"a722fry-Device1299",
-"a722fry-Device1300",
-"a722fry-Device1301",
-"a722fry-Device1302",
-"a722fry-Device1303",
-"a722fry-Device1371",
-"a722fry-Device1372",
-"a722fry-Device1373",
-"a722fry-Device1374",
-"a722fry-Device1375"
-)
+# Список объектов для обновления (без явных кавычек в коде)
+$groups = @"
+A722-Archestra
+A722-Audit-MES
+A722-MES_app7
+A722-MESAppSvc
+G722FSM-3c6aacd5-a281-4138-a09a-f8a6f223e475
+G722FSM-67a347b8-4a59-4037-be7b-ac249706f788
+G722FSM-A18_4806-Asodu-FS_ТехДокEP-600_ТМБОтчет
+G722FSM-A18_4806-Asodu-FS_ТехДокБК_ТМБОтчет
+G722FSM-A18_4806-Asodu-FS_ТехДокГексен-1_ТМБОтчет
+G722FSM-A18_4806-Asodu-FS_ТехДокДБиУВС_ТМБОтчет
+G722FSM-A18_4806-Asodu-FS_ТехДокДБО_ТМБОтчет
+G722FSM-A18_4806-Asodu-FS_ТехДокИМ_ТМБОтчет
+G722FSM-A18_4806-Asodu-FS_ТехДокОиГ_ТМБОтчет
+G722FSM-A18_4806-Asodu-FS_ТехДокПластики_ТМБОтчет
+G722FSM-A18_4806-Asodu-FS_ТехДокСК_ТМБОтчет
+G722FSM-A18_4806-Asodu-FS_ТехДокСПС_ТМБОтчет
+G722FSM-A18_4806-Asodu-FS_ТехДокЭтилен_ТМБОтчет
+G722FSM-b19b95d5-afa8-42bb-aca0-a27c51de41c6
+G722FSM-d6f85e31-ce2d-447e-89ad-33817a8481f7
+G722FSM-FS01-CIIT_Digital
+G722FSM-FS01-CIIT_Digital_MES
+G722FSM-FS01-CIIT_Polz_KorzhavinAB
+G722FSR-3c6aacd5-a281-4138-a09a-f8a6f223e475
+G722FSR-67a347b8-4a59-4037-be7b-ac249706f788
+G722FSR-A18_4806-Asodu-FS_ASData_АСОДУ
+G722FSR-b19b95d5-afa8-42bb-aca0-a27c51de41c6
+G722FSR-d6f85e31-ce2d-447e-89ad-33817a8481f7
+G722FSR-FS01-CIIT_Digital
+G722FSR-FS01-CIIT_Digital_MES
+G722FSR-FS01-CIIT_Polz_KorzhavinAB
+G722GA-S722AS-MES_L2Support
+G722GA-S722DB-ASODUSQL_L2Support
+G722GGZ-A18_4806-Asodu-Plant_4806_Users
+G722TSU-asodu-sp-09
+G722TSU-S722TS-004002
+G722TSU-S722TS-004003
+G722TSU-S722TS-004004
+G722TSU-S722TS-004011
+g722tsu-s722ts-tst-mes1
+M722-ALARMSERV
+M722-ASODUSQL
+MES NKNH
+SendAs MES NKNH
+"@ -split "`n"
 
-# --- Проверка и блокировка ---
-$idx = 0
-$total = $DeviceList.Count
+# Указываем пользователя и ID
+$user = 'VasinaAM'
+$id = '#TSK22521842, Доп согласующий: Котляров Алексей Викторович'
 
-foreach ($Name in $DeviceList) {
-    $idx++
-    Write-Host "[$idx/$total] Обработка: $Name" -NoNewline
+# Получаем информацию о пользователе из AD
+try {
+    $adUser = Get-ADUser -Identity $user -Properties mail, GivenName, Surname, MiddleName -ErrorAction Stop
+}
+catch {
+    Write-Host -ForegroundColor Magenta "ОШИБКА: Пользователь '$user' не найден в AD."
+    Write-Host -ForegroundColor Red $_.Exception.Message
+    exit
+}
 
-    try {
-        # --- Найти пользователя ---
-        $user = Get-ADUser -Filter "SamAccountName -eq '$Name'" -Properties Enabled, LockedOut
-        if ($user) {
-            # --- Блокировать ---
-            Disable-ADAccount -Identity $user
-            Write-Host " -> найден и заблокирован | Enabled: $($user.Enabled) | LockedOut: $($user.LockedOut)" -ForegroundColor Green
+# Формируем описание
+$description = "$($adUser.Surname) $($adUser.GivenName) $($adUser.MiddleName) <$($adUser.mail)>, $id"
+Write-Host -ForegroundColor Cyan "[INFO] Сформировано описание: $descriptionn"
+
+# Перебор объектов и обновление их описания
+foreach ($objectName in $groups) {
+    Write-Host "Обработка объекта: $objectName" -ForegroundColor Gray
+
+    # Поиск объекта (группа или пользователь)
+    $object = Get-ADObject -Filter "Name -eq '$objectName' -or DisplayName -eq '$objectName'" -Properties Description, ObjectClass -ErrorAction SilentlyContinue
+
+    if ($object) {
+        Write-Host -NoNewline -ForegroundColor Gray "$objectNamet"
+
+        if (($object | Measure-Object).Count -eq 1) {
+            # Проверка типа объекта
+            if ($object.ObjectClass -in @('user', 'group')) {
+                Write-Host -ForegroundColor Cyan "Текущее описание: $($object.Description)"
+
+                if ($object.Description -notlike "*$description*") {
+                    $newDescription = $description
+                    Write-Host -ForegroundColor Green "Новое описание: $newDescription"
+
+                    # Обновляем описание объекта
+                    Set-ADObject -Identity $object.ObjectGUID -Description $newDescription
+                    Write-Host -ForegroundColor Yellow "[УСПЕХ] Описание обновлено для '$objectName 'n"
+                }
+                else {
+                    Write-Host -ForegroundColor Magenta "Описание уже соответствует нужному" 
+                }
+            }
+            else {
+                Write-Host -ForegroundColor DarkYellow "Объект '$objectName' не является группой или пользователем (тип: $($object.ObjectClass))"
+            }
         }
         else {
-            Write-Host " -> не найден" -ForegroundColor Red
+            Write-Host -ForegroundColor Red "Найдено несколько объектов для '$objectName'. Требуется уточнение."
+            pause
         }
     }
-    catch {
-        Write-Host " -> ошибка: $($_.Exception.Message)" -ForegroundColor Yellow
+    else {
+        Write-Host -NoNewline -ForegroundColor Red "$objectName  не найдено`n"
     }
 }
