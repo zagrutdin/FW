@@ -1,5 +1,5 @@
 # Автор: Флорит Загрутдинов
-# Телефон: +7 917 272-22-88
+# Телефон: +7917 272-22-88
 
 # Список объектов для обновления (без явных кавычек в коде)
 $groups = @"
@@ -46,7 +46,7 @@ M722-ALARMSERV
 M722-ASODUSQL
 MES NKNH
 SendAs MES NKNH
-"@ -split "`n"
+"@ -split "`n" | ForEach-Object { $_.Trim() }
 
 # Указываем пользователя и ID
 $user = 'VasinaAM'
@@ -70,14 +70,26 @@ Write-Host -ForegroundColor Cyan "[INFO] Сформировано описани
 foreach ($objectName in $groups) {
     Write-Host "Обработка объекта: $objectName" -ForegroundColor Gray
 
-    # Поиск объекта (группа или пользователь)
+    # Попытка найти объект стандартным методом
     $object = Get-ADObject -Filter "Name -eq '$objectName' -or DisplayName -eq '$objectName'" -Properties Description, ObjectClass -ErrorAction SilentlyContinue
 
+    # Если не найдено, пробуем искать как группу
+    if (-not $object) {
+        $object = Get-ADGroup -Filter "Name -eq '$objectName'" -Properties Description -ErrorAction SilentlyContinue
+        if ($object) { $object.ObjectClass = 'group' }
+    }
+
+    # Если не найдено, пробуем искать как пользователя
+    if (-not $object) {
+        $object = Get-ADUser -Filter "SamAccountName -eq '$objectName'" -Properties Description -ErrorAction SilentlyContinue
+        if ($object) { $object.ObjectClass = 'user' }
+    }
+
+    # Если найден какой-то объект
     if ($object) {
         Write-Host -NoNewline -ForegroundColor Gray "$objectName "
 
         if (($object | Measure-Object).Count -eq 1) {
-            # Проверка типа объекта
             if ($object.ObjectClass -in @('user', 'group')) {
                 Write-Host -ForegroundColor Cyan "Текущее описание: $($object.Description)"
 
@@ -85,12 +97,11 @@ foreach ($objectName in $groups) {
                     $newDescription = $description
                     Write-Host -ForegroundColor Green "Новое описание: $newDescription"
 
-                    # Обновляем описание объекта
                     Set-ADObject -Identity $object.ObjectGUID -Description $newDescription
                     Write-Host -ForegroundColor Yellow "[УСПЕХ] Описание обновлено для '$objectName'`n"
                 }
                 else {
-                    Write-Host -ForegroundColor Magenta "Описание уже соответствует нужному`n" 
+                    Write-Host -ForegroundColor Magenta "Описание уже соответствует нужному`n"
                 }
             }
             else {
