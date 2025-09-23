@@ -1,16 +1,17 @@
 # Список портов
 $PortList = @(22, 80, 443)
 
-# Хэш для хранения результатов
+# Инициализация хэша результатов
 $Results = @{}
 foreach ($ip in $IPList) { 
     $Results[$ip] = [PSCustomObject]@{
-        "Ping (мс)" = "-"
-        "Открытые порты" = "-"
+        "Ping (мс)" = 0
+        "Открытые порты" = 0
+        "Status" = 0       # начальный статус
     }
 }
 
-# Функция для проверки одного IP
+# Функция проверки одного IP
 function Check-IP {
     param(
         [string]$IP,
@@ -18,15 +19,23 @@ function Check-IP {
         [hashtable]$Results
     )
 
-    # Ping через .NET
+    # Проверка ping
     try {
         $ping = New-Object System.Net.NetworkInformation.Ping
         $reply = $ping.Send($IP, 1000)
-        if ($reply.Status -eq "Success") { $Results[$IP]."Ping (мс)" = $reply.RoundtripTime }
-        else { $Results[$IP]."Ping (мс)" = "-" }
-    } catch { $Results[$IP]."Ping (мс)" = "-" }
+        if ($reply.Status -eq "Success") { 
+            $Results[$IP]."Ping (мс)" = $reply.RoundtripTime
+            $pingStatus = "PingOK"
+        } else { 
+            $Results[$IP]."Ping (мс)" = "NoPing"
+            $pingStatus = "NoPing"
+        }
+    } catch { 
+        $Results[$IP]."Ping (мс)" = "NoPing"
+        $pingStatus = "NoPing"
+    }
 
-    # Проверка портов через TcpClient
+    # Проверка TCP-портов
     $openPorts = @()
     foreach ($port in $PortList) {
         try {
@@ -36,8 +45,18 @@ function Check-IP {
             $openPorts += $port
         } catch {}
     }
-    if ($openPorts.Count -eq 0) { $Results[$IP]."Открытые порты" = "-" }
-    else { $Results[$IP]."Открытые порты" = ($openPorts -join ",") }
+    if ($openPorts.Count -eq 0) { 
+        $Results[$IP]."Открытые порты" = "NoOpenPort"
+        $portStatus = "NoOpenPort"
+    } else { 
+        $Results[$IP]."Открытые порты" = ($openPorts -join ",")
+        $portStatus = "PortsOK"
+    }
+
+    # Обновление общего статуса по логике: если ping не прошёл → NoPing, если порты закрыты → NoOpenPort, иначе OK
+    if ($pingStatus -eq "NoPing") { $Results[$IP].Status = "NoPing" }
+    elseif ($portStatus -eq "NoOpenPort") { $Results[$IP].Status = "NoOpenPort" }
+    else { $Results[$IP].Status = "OK" }
 }
 
 # Функция вывода таблицы
@@ -51,13 +70,14 @@ function Update-Table {
         Sort-Object Name |
         ForEach-Object {
             $ip = $_.Name.PadRight(15)
-            $ping = $_.Value."Ping (мс)".ToString().PadRight(8)
-            $ports = $_.Value."Открытые порты"
-            Write-Host "$ip`t$ping`t$ports"
+            $ping = $_.Value."Ping (мс)".ToString().PadRight(10)
+            $ports = $_.Value."Открытые порты".ToString().PadRight(15)
+            $status = $_.Value.Status
+            Write-Host "$ip`t$ping`t$ports`t$status"
         }
 }
 
-# Основной цикл с параллельными джобами
+# Основной цикл
 while ($true) {
     $jobs = @()
     foreach ($ip in $IPList) {
@@ -67,14 +87,13 @@ while ($true) {
         } -ArgumentList $ip, $PortList, $Results
     }
 
-    # Обновление таблицы каждые 2 секунды, пока идут джобы
+    # Таблица обновляется каждые 2 секунды пока идут джобы
     do {
         Update-Table -Results $Results
         Start-Sleep -Seconds 2
         $running = $jobs | Where-Object { $_.State -eq 'Running' }
     } while ($running.Count -gt 0)
 
-    # Получение оставшихся результатов и удаление джобов
     foreach ($job in $jobs) {
         Receive-Job -Job $job -Keep | Out-Null
         Remove-Job -Job $job
