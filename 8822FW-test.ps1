@@ -1,5 +1,5 @@
 # Список IP-адресов
-$IPs = @(
+$IPList = @(
 "10.148.196.131",
 "10.148.196.132",
 "10.148.196.133",
@@ -23,22 +23,19 @@ $IPs = @(
 "10.148.195.142"
 )
 
-# Список портов для проверки
-$Ports = @(22, 80, 443, 502)
+foreach ($IP in $IPList) {
+    $output = ping -n 1 $IP
 
-foreach ($IP in $IPs) {
-    $PingResult = Test-Connection -ComputerName $IP -Count 1 -Quiet
-    if ($PingResult) {
-        Write-Host "$IP is reachable"
-        foreach ($Port in $Ports) {
-            $PortResult = Test-NetConnection -ComputerName $IP -Port $Port -InformationLevel Quiet
-            if ($PortResult) {
-                Write-Host "Port $Port is open on $IP"
-            } else {
-                Write-Host "Port $Port is closed on $IP"
-            }
+    # Ищем строку с временем ответа
+    $timeLine = $output | Where-Object { $_ -match "Reply from" }
+    if ($timeLine) {
+        if ($timeLine -match "time[=<]\s*(\d+)ms") {
+            $time = $matches[1]
+            Write-Host "$IP : $time ms"
+        } else {
+            Write-Host "$IP : Response received (time unknown)"
         }
     } else {
-        Write-Host "$IP is not reachable"
+        Write-Host "$IP : No Response"
     }
 }
