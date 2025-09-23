@@ -1,80 +1,44 @@
-# Порты
-$PortList = @(22,80,443)
+# Список IP-адресов
+$IPs = @(
+"10.148.196.131",
+"10.148.196.132",
+"10.148.196.133",
+"10.148.196.134",
+"10.148.196.135",
+"10.148.196.201",
+"10.148.196.202",
+"10.148.196.140",
+"10.148.196.141",
+"10.148.196.142",
+"10.148.196.217",
+"10.148.196.145",
+"10.148.196.144",
+"10.148.196.146",
+"10.148.195.131",
+"10.148.195.132",
+"10.148.195.133",
+"10.148.195.201",
+"10.148.195.202",
+"10.148.195.141",
+"10.148.195.142"
+)
 
-# Инициализация
-$Results = @{}
-foreach ($ip in $IPList) {
-    $Results[$ip] = [PSCustomObject]@{
-        "Ping" = "NotSent"
-        "PingTime(ms)" = "-"
-        "OpenPorts" = "-"
-        "Status" = "NotChecked"
-    }
-}
+# Список портов для проверки
+$Ports = @(22, 80, 443, 502)
 
-function Check-IP {
-    param([string]$IP, [int[]]$PortList, [hashtable]$Results)
-
-    # Ping
-    try {
-        $pingTime = (Test-Connection -ComputerName $IP -Count 1 -ErrorAction Stop | Select-Object -ExpandProperty ResponseTime)
-        if ($pingTime) {
-            $Results[$IP].Ping = "ResponseReceived"
-            $Results[$IP]."PingTime(ms)" = $pingTime
-        } else {
-            $Results[$IP].Ping = "NoResponse"
-            $Results[$IP]."PingTime(ms)" = "-"
-        }
-    } catch {
-        $Results[$IP].Ping = "NoPing"
-        $Results[$IP]."PingTime(ms)" = "-"
-    }
-
-    # Проверка портов
-    $openPorts = @()
-    foreach ($port in $PortList) {
-        try {
-            if (Test-NetConnection -ComputerName $IP -Port $port -InformationLevel Quiet) {
-                $openPorts += $port
+foreach ($IP in $IPs) {
+    $PingResult = Test-Connection -ComputerName $IP -Count 1 -Quiet
+    if ($PingResult) {
+        Write-Host "$IP is reachable"
+        foreach ($Port in $Ports) {
+            $PortResult = Test-NetConnection -ComputerName $IP -Port $Port -InformationLevel Quiet
+            if ($PortResult) {
+                Write-Host "Port $Port is open on $IP"
+            } else {
+                Write-Host "Port $Port is closed on $IP"
             }
-        } catch {}
-    }
-    if ($openPorts.Count -eq 0) { $Results[$IP].OpenPorts = "NoOpenPort" }
-    else { $Results[$IP].OpenPorts = ($openPorts -join ",") }
-
-    # Статус
-    if ($Results[$IP].Ping -eq "ResponseReceived" -and $Results[$IP].OpenPorts -ne "NoOpenPort") {
-        $Results[$IP].Status = "OK"
-    } elseif ($Results[$IP].Ping -ne "ResponseReceived") {
-        $Results[$IP].Status = "NoPing"
-    } elseif ($Results[$IP].OpenPorts -eq "NoOpenPort") {
-        $Results[$IP].Status = "NoOpenPort"
-    } else {
-        $Results[$IP].Status = "Unknown"
-    }
-}
-
-function Update-Table {
-    param([hashtable]$Results)
-    Clear-Host
-    Write-Host "Мониторинг устройств — $(Get-Date)" -ForegroundColor Cyan
-    Write-Host "-------------------------------------------------------------`n"
-
-    $Results.GetEnumerator() |
-        Sort-Object Name |
-        ForEach-Object {
-            $ip = $_.Name.PadRight(15)
-            $ping = $_.Value.Ping.PadRight(15)
-            $pingTime = $_.Value."PingTime(ms)".ToString().PadRight(8)
-            $ports = $_.Value.OpenPorts.PadRight(15)
-            $status = $_.Value.Status
-            Write-Host "$ip`t$ping`t$pingTime`t$ports`t$status"
         }
-}
-
-# Основной цикл
-while ($true) {
-    foreach ($ip in $IPList) { Check-IP -IP $ip -PortList $PortList -Results $Results }
-    Update-Table -Results $Results
-    Start-Sleep -Seconds 2
+    } else {
+        Write-Host "$IP is not reachable"
+    }
 }
