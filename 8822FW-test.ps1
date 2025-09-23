@@ -26,49 +26,50 @@ $IPList = @(
 # Список портов для проверки
 $PortList = @(22, 80, 443, 502)
 
-foreach ($IP in $IPList) {
-    # Пинг
-    $pingOutput = ping -n 1 $IP
-    $pingLine = $pingOutput | Where-Object { $_ -match "Reply from" }
-    if ($pingLine -match "time[=<]\s*(\d+)ms") {
-        $pingTime = "$($matches[1]) ms"
-    } elseif ($pingLine) {
-        $pingTime = "Response"
-    } else {
-        $pingTime = "NoPing"
-    }
-
-    # Параллельная проверка портов через Jobs
-    $jobs = @()
-    $openPorts = @()
-    foreach ($port in $PortList) {
-        $jobs += Start-Job -ArgumentList $IP,$port -ScriptBlock {
-            param($IP, $port)
-            try {
-                $tcp = New-Object System.Net.Sockets.TcpClient
-                $iar = $tcp.BeginConnect($IP, $port, $null, $null)
-                if ($iar.AsyncWaitHandle.WaitOne(500)) {
-                    $tcp.EndConnect($iar)
-                    $tcp.Close()
-                    return $port
-                } else {
-                    $tcp.Close()
-                    return $null
-                }
-            } catch { return $null }
+# Функция проверки пинга
+function Check-Ping {
+    param([string]$IP)
+    $output = ping -n 1 $IP
+    $timeLine = $output | Where-Object { $_ -match "Reply from" }
+    if ($timeLine) {
+        if ($timeLine -match "time[=<]\s*(\d+)ms") {
+            return "$($matches[1]) ms"
+        } else {
+            return "Response received"
         }
+    } else {
+        return "No Response"
+    }
+}
+
+# Функция проверки открытых портов
+function Check-Ports {
+    param([string]$IP, [int[]]$Ports)
+    $openPorts = @()
+    foreach ($port in $Ports) {
+        try {
+            $tcp = New-Object System.Net.Sockets.TcpClient
+            $tcp.Connect($IP, $port)
+            $tcp.Close()
+            $openPorts += $port
+        } catch {}
+    }
+    if ($openPorts.Count -eq 0) { return "No Open Ports" }
+    return ($openPorts -join ",")
+}
+
+# Основной цикл
+foreach ($IP in $IPList) {
+    $pingResult = Check-Ping -IP $IP
+    Write-Host "$IP : $pingResult"
+
+    # Проверка портов только если пинг прошёл
+    if ($pingResult -ne "No Response") {
+        $portsResult = Check-Ports -IP $IP -Ports $PortList
+        Write-Host "Ports open on $IP : $portsResult"
+    } else {
+        Write-Host "Ports check skipped for $IP (host unreachable)"
     }
 
-    # Собираем результаты портов
-    foreach ($job in $jobs) {
-        $result = Receive-Job $job -Wait
-        if ($result) { $openPorts += $result }
-        Remove-Job $job
-    }
-
-    if ($openPorts.Count -eq 0) { $portsResult = "NoOpenPort" }
-    else { $portsResult = ($openPorts -join ",") }
-
-    # Вывод в одну строку
-    Write-Host "$IP`tPing: $pingTime`tOpen Ports: $portsResult"
+    Write-Host "-------------------------------------------"
 }
