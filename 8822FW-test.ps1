@@ -1,7 +1,7 @@
 # Порты
-$PortList = @(22, 80, 443)
+$PortList = @(22,80,443)
 
-# Инициализация результатов
+# Инициализация
 $Results = @{}
 foreach ($ip in $IPList) {
     $Results[$ip] = [PSCustomObject]@{
@@ -12,38 +12,31 @@ foreach ($ip in $IPList) {
     }
 }
 
-# Проверка одного IP
 function Check-IP {
-    param(
-        [string]$IP,
-        [int[]]$PortList,
-        [hashtable]$Results
-    )
+    param([string]$IP, [int[]]$PortList, [hashtable]$Results)
 
     # Ping
     try {
-        $pingObj = New-Object System.Net.NetworkInformation.Ping
-        $reply = $pingObj.Send($IP, 1000)
-        if ($reply.Status -eq "Success") {
+        $pingTime = (Test-Connection -ComputerName $IP -Count 1 -ErrorAction Stop | Select-Object -ExpandProperty ResponseTime)
+        if ($pingTime) {
             $Results[$IP].Ping = "ResponseReceived"
-            $Results[$IP]."PingTime(ms)" = $reply.RoundtripTime
+            $Results[$IP]."PingTime(ms)" = $pingTime
         } else {
             $Results[$IP].Ping = "NoResponse"
             $Results[$IP]."PingTime(ms)" = "-"
         }
     } catch {
-        $Results[$IP].Ping = "Error"
+        $Results[$IP].Ping = "NoPing"
         $Results[$IP]."PingTime(ms)" = "-"
     }
 
-    # Порты
+    # Проверка портов
     $openPorts = @()
     foreach ($port in $PortList) {
         try {
-            $tcp = New-Object System.Net.Sockets.TcpClient
-            $tcp.Connect($IP, $port)
-            $tcp.Close()
-            $openPorts += $port
+            if (Test-NetConnection -ComputerName $IP -Port $port -InformationLevel Quiet) {
+                $openPorts += $port
+            }
         } catch {}
     }
     if ($openPorts.Count -eq 0) { $Results[$IP].OpenPorts = "NoOpenPort" }
@@ -61,7 +54,6 @@ function Check-IP {
     }
 }
 
-# Вывод таблицы
 function Update-Table {
     param([hashtable]$Results)
     Clear-Host
@@ -82,9 +74,7 @@ function Update-Table {
 
 # Основной цикл
 while ($true) {
-    foreach ($ip in $IPList) {
-        Check-IP -IP $ip -PortList $PortList -Results $Results
-    }
+    foreach ($ip in $IPList) { Check-IP -IP $ip -PortList $PortList -Results $Results }
     Update-Table -Results $Results
     Start-Sleep -Seconds 2
 }
