@@ -1,3 +1,69 @@
+# Автор: Флорит Загрутдинов
+# Телефон: +7 917 272-22-88
+
+$PortList = @(22,80,443)
+
+
+$IPList = @"
+10.148.196.131
+10.148.196.132
+10.148.196.133
+10.148.196.134
+10.148.196.135
+10.148.196.201
+10.148.196.202
+10.148.196.140
+10.148.196.141
+10.148.196.142
+10.148.196.217
+10.148.196.145
+10.148.196.144
+10.148.196.146
+10.148.195.131
+10.148.195.132
+10.148.195.133
+10.148.195.201
+10.148.195.202
+10.148.195.141
+10.148.195.142
+"@ -split "`n"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # ==================== Функции ====================
 
 # Метод ping
@@ -60,12 +126,7 @@ function Update-Table {
         }
 }
 
-# ==================== Основное выполнение ====================
 
-# Список IP и портов задается заранее
-# Пример:
-# $IPList = @("10.0.0.1","10.0.0.2")
-# $PortList = @(22,80,443)
 
 $Results = @{}
 foreach ($ip in $IPList) { $Results[$ip] = $null }
@@ -75,3 +136,32 @@ while ($true) {
     Update-Table -Results $Results
     Start-Sleep -Seconds 5
 }
+
+
+
+WARNING: Name resolution of 10.148.196.145 failed
+WARNING: Name resolution of 10.148.196.144 failed
+WARNING: Name resolution of 10.148.196.144 failed
+WARNING: Name resolution of 10.148.196.144 failed
+WARNING: Name resolution of 10.148.196.146 failed
+WARNING: Name resolution of 10.148.196.146 failed
+WARNING: Name resolution of 10.148.196.146 failed
+WARNING: Name resolution of 10.148.195.131 failed
+WARNING: Name resolution of 10.148.195.131 failed
+WARNING: Name resolution of 10.148.195.131 failed
+WARNING: Name resolution of 10.148.195.132 failed
+WARNING: Name resolution of 10.148.195.132 failed
+WARNING: Name resolution of 10.148.195.132 failed
+WARNING: Name resolution of 10.148.195.133 failed
+WARNING: Name resolution of 10.148.195.133 failed
+WARNING: Name resolution of 10.148.195.133 failed
+WARNING: Name resolution of 10.148.195.201 failed
+WARNING: Name resolution of 10.148.195.201 failed
+WARNING: Name resolution of 10.148.195.201 failed
+WARNING: Name resolution of 10.148.195.202 failed
+WARNING: Name resolution of 10.148.195.202 failed
+WARNING: Name resolution of 10.148.195.202 failed
+WARNING: Name resolution of 10.148.195.141 failed
+WARNING: Name resolution of 10.148.195.141 failed
+WARNING: Name resolution of 10.148.195.141 failed
+WARNING: TCP connect to (10.148.195.142 : 22) failed
